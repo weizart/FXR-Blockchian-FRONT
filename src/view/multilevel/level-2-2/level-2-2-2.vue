@@ -13,10 +13,8 @@
             <FormItem label="作品名称">
                 <Input v-model="formItem.input" placeholder="Enter something..."></Input>
             </FormItem>
-            <FormItem prop="city" label="城市">
-                <Select v-model="formItem.input1" placeholder="请选择城市" @on-change="changeCity">
-                <Option v-for="(item,index) in citiesArr" :key="item.value" :value="item.value" >{{ item.label }}</Option>
-                </Select>
+            <FormItem label="地区">
+                <v-distpicker province="广东省" city="广州市" hide-area=1 selected="formItem.area"></v-distpicker>
             </FormItem>
             <FormItem label="创作国家">
                 <Input v-model="formItem.input3" placeholder="Enter something..."></Input>
@@ -89,6 +87,7 @@
   </div>
 </template>
 <script>
+import VDistpicker from 'v-distpicker'
     export default {
         data () {
             return {
@@ -103,7 +102,8 @@
                     select: '',
                     select1: '',
                     select2: '',
-                    input3:'中国'
+                    input3:'中国',
+                    area:''
                 },
                  columns1: [
                     {
@@ -176,11 +176,12 @@
                     create_type: this.formItem.select2,
                     create_city: this.formItem.input1,
                     work_type: this.formItem.select,
-                    cteate_time: this.formItem.input2
+                    create_time: this.formItem.input2,
+                    create_city: this.formItem.area
                 })
                 this.$Modal.confirm({
                     title: '新增提示',
-                    content: '是否确定新增设备?',
+                    content: '是否确定新增存证?',
                     okText: '确定',
                     cancelText: '取消',
                     onOk: () => {
@@ -192,8 +193,11 @@
                     }
                 })
             }
-        }
-    }
+  },
+  components: {
+    VDistpicker
+  }
+}
 </script>
 <style>
     .demo-split{
