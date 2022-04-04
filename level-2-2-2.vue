@@ -2,17 +2,33 @@
  <div class="demo-split">
    <split v-model="split1">
      <div slot="left" class="semo-split-pane">
-       <h2>存证信息登记</h2>
-        <Table stripe :columns="columns2" :data="data2"></Table>
+        <h2>存证信息登记</h2>
+        <Card :bordered="false">
+            <p slot="title">当前状态</p>
+            <p v-text="status"></p>
+        </Card>
+        <h3>信息填报</h3>
+        <Card :bordered="false">
         <Form :model="formItem" :label-width="80">
             <FormItem label="作品名称">
                 <Input v-model="formItem.input" placeholder="Enter something..."></Input>
             </FormItem>
-            <FormItem label="创作城市">
-                <Input v-model="formItem.input1" placeholder="Enter something..."></Input>
+            <FormItem prop="city" label="城市">
+                <Select v-model="formItem.input1" placeholder="请选择城市" @on-change="changeCity">
+                <Option v-for="(item,index) in citiesArr" :key="item.value" :value="item.value" >{{ item.label }}</Option>
+                </Select>
             </FormItem>
-            <FormItem label="创作时间">
-                <Input v-model="formItem.input2" placeholder="Enter something..."></Input>
+            <FormItem label="创作国家">
+                <Input v-model="formItem.input3" placeholder="Enter something..."></Input>
+            </FormItem>
+            <FormItem label="创作日期">
+                <Row>
+                   <Col span="11">
+                       <FormItem prop="date">
+                           <DatePicker type="date" placeholder="Select date" v-model="formItem.input2"></DatePicker>
+                       </FormItem>
+                   </Col>
+               </Row>
             </FormItem>
             <FormItem label="作品类型">
                  <Select v-model="formItem.select">
@@ -57,14 +73,16 @@
                 </Select>
             </FormItem>
             <FormItem>
-                    <Button type="primary">发起存证</Button>
-                    <Button style="margin-left: 8px">取消</Button>
+                    <Button type="primary" @click="createSave">发起存证</Button>
+                    <Button style="margin-left: 8px" @click="delesave">取消</Button>
                     <Button style="margin-left: 8px">保存</Button>
-        </FormItem>
+            </FormItem>
         </Form>
+        </card>
      </div> 
      <div slot="right" class="demo-split-pane">
          <h3>历史记录</h3>
+         <Button style="margin-left: 8px" @click="showAll">刷新</Button>
          <Table stripe :columns="columns1" :data="data1"></Table>
      </div>
    </split>
@@ -75,7 +93,8 @@
         data () {
             return {
                 // api
-                default_api: 'http://127.0.0.1:4523/mock/758636',
+                default_api: 'http://127.0.0.1:4523/mock/758129',
+                status:"",
                 split1:0.7,
                 formItem: {
                     input: '',
@@ -83,7 +102,8 @@
                     input2: '',
                     select: '',
                     select1: '',
-                    select2: ''
+                    select2: '',
+                    input3:'中国'
                 },
                  columns1: [
                     {
@@ -110,30 +130,67 @@
                 columns2: [
                     {
                         title: '当前状态',
-                        key: 'now_status'
+                        key: 'status'
                     }
                 ],
-                data1: [
-                    {
-                        create_time: 'John Brown',
-                        update_time: 18,
-                        audit_status: 'New York No. 1 Lake Park',
-                        illegal_status: '2016-10-03',
-                        tort_status: 'wei'
-                    },
-                    {
-                        create_time: 'John Brown',
-                        update_time: 18,
-                        audit_status: 'New York No. 1 Lake Park',
-                        illegal_status: '2016-10-03',
-                        tort_status: 'wei'
+                data1: [],
+                all_data1: [],
+                data2: []
+            }
+        },
+        methods:{
+            delesave() {
+                for (let key in this.formItem) {
+                    this.formItem[key] = ''
+                }
+            },
+            status1(){
+                const api = this.default_api + '/work'
+                this.axios.get(api)
+                    .then(response => {
+                        console.log(response.data);
+                        let res = response.data['data']
+                        this.status = res.status
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+            showAll() {
+                const api = this.default_api + '/work'
+                this.axios.get(api)
+                    .then(response => {
+                        console.log(response.data);
+                        let res = response.data['data']
+                        this.data1 = res.record
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            },
+            createSave() {
+                const api = this.default_api + '/work'
+                const data = JSON.stringify({
+                    work_name: this.formItem.input,
+                    copyright_create_type: this.formItem.select1,
+                    create_type: this.formItem.select2,
+                    create_city: this.formItem.input1,
+                    work_type: this.formItem.select,
+                    cteate_time: this.formItem.input2
+                })
+                this.$Modal.confirm({
+                    title: '新增提示',
+                    content: '是否确定新增设备?',
+                    okText: '确定',
+                    cancelText: '取消',
+                    onOk: () => {
+                        this.axios.post(api, data).then(() => {
+                            this.myDrawer = false
+                            this.$Message.success('新增成功')
+                            this.status1()
+                        })
                     }
-                ],
-                data2: [
-                    {
-                        now_status: '1'
-                    }
-                ]
+                })
             }
         }
     }
